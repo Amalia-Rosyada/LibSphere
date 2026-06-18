@@ -80,17 +80,28 @@ button:active:not(:disabled) {
 #scan-modal { 
     animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
 }
+
+/* REVISI: Mengunci agar modal benar-benar hilang secara mutlak saat berstatus .hidden */
 #scan-modal.hidden { 
-    animation: fadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    display: none !important; 
     pointer-events: none; 
+}
+/* Menambahkan selektor modal struk ke aturan display none agar tersembunyi dengan benar */
+#scan-modal.hidden, #receipt-modal.hidden { 
+    display: none !important; 
+    pointer-events: none; 
+}
+
+/* Memastikan konten sukses struk mengikuti logika visibility JavaScript */
+#receipt-success.hidden {
+    display: none !important;
+}
+#receipt-content.hidden {
+    display: none !important;
 }
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-}
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
 }
 
 #scan-modal > div { 
@@ -99,6 +110,17 @@ button:active:not(:disabled) {
 @keyframes slideInModal {
     from { opacity: 0; transform: scale(0.95) translateY(10px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* REVISI: Memaksa area kamera scan dan tampilan sukses mematuhi fungsi kelas .hidden */
+#scan-success {
+    display: block;
+}
+#scan-success.hidden {
+    display: none !important;
+}
+#scan-content.hidden {
+    display: none !important;
 }
 
 /* Success checkmark pop animation */
@@ -196,7 +218,6 @@ aside {
     }
 }
 
-
 /* ==========================================================================
    2. DASHBOARD CONTAINER & NAVIGATION LINKS
    ========================================================================== */
@@ -251,6 +272,7 @@ aside {
 /* ==========================================================================
    4. ANIMASI MASUK UNTUK HALAMAN LOGIN 
    ========================================================================== */
+   
 #login-screen .md\:flex {
     animation: loginBgFade 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
@@ -303,3 +325,19 @@ aside {
     }
 }
 
+/* ==========================================================================
+   SMART SEARCH SUGGESTIONS DROPDOWN
+   ========================================================================== */
+#search-suggestions div {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: bg 0.2s ease;
+}
+
+#search-suggestions div:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark #search-suggestions div:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
