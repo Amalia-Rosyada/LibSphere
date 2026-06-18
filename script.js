@@ -1,7 +1,18 @@
-// --- 1. SIDEBAR & NAVIGATION SYSTEM ---
+// --- 0. GLOBAL VARIABLES & UTILITIES ---
+let allData = [];
+let staffName = '';
+let currentScanType = ''; // 'book' atau 'member'
 let sidebarOpen = true;
+let searchQuery = ''; // Menyimpan kata kunci pencarian global secara real-time
 
-// Set default state awal berdasarkan ukuran layar saat web dimuat
+// Fungsi ESCAPE HTML untuk Keamanan Form Input
+function esc(s) { 
+    const d = document.createElement('div'); 
+    d.textContent = s || ''; 
+    return d.innerHTML; 
+}
+
+// Set default state awal sidebar berdasarkan ukuran layar saat web dimuat
 if (window.innerWidth < 768) {
     sidebarOpen = false; 
 }
@@ -10,6 +21,7 @@ const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
+// --- 1. SIDEBAR & NAVIGATION SYSTEM ---
 function closeSidebar() {
     sidebarOpen = false;
     const sidebar = document.querySelector('aside');
@@ -17,11 +29,11 @@ function closeSidebar() {
 
     if (window.innerWidth < 768) {
         sidebar.classList.remove('active-mobile');
+        sidebar.classList.add('hidden-mobile');
     } else {
         sidebar.classList.add('collapsed-desktop');
     }
 
-    // Sembunyikan lapisan overlay di HP dengan animasi smooth
     if (sidebarOverlay) {
         sidebarOverlay.classList.remove('active-overlay');
         sidebarOverlay.classList.add('hidden-overlay');
@@ -35,44 +47,43 @@ function openSidebar() {
 
     if (window.innerWidth < 768) {
         sidebar.classList.add('active-mobile');
+        sidebar.classList.remove('hidden-mobile');
     } else {
         sidebar.classList.remove('collapsed-desktop');
     }
 
-    // Tampilkan lapisan overlay di HP dengan animasi smooth
     if (sidebarOverlay) {
         sidebarOverlay.classList.remove('hidden-overlay');
         sidebarOverlay.classList.add('active-overlay');
     }
 }
 
-function toggleSidebar() {
-    if (sidebarOpen) {
-        closeSidebar();
-    } else {
-        openSidebar();
-    }
-}
-
-// Event Listener untuk Tombol Hamburger khusus HP
-if (mobileMenuBtn) {
-    mobileMenuBtn.addEventListener('click', toggleSidebar);
-}
-
-// Event Listener untuk Tombol Toggle Sidebar di Atas (Dekat Search Bar)
 if (sidebarToggleBtn) {
-    sidebarToggleBtn.addEventListener('click', toggleSidebar);
+    sidebarToggleBtn.addEventListener('click', () => {
+        if (sidebarOpen) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
 }
 
-// Event Listener agar sidebar menutup saat area hitam (overlay) di HP diklik
+if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSidebar();
+    });
+}
+
 if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', () => {
+        closeSidebar();
+    });
 }
 
-// Otomatis tutup di HP setelah menu navigasi diklik
 document.querySelectorAll('.sidebar-link').forEach(btn => {
     btn.addEventListener('click', () => {
-        if (window.innerWidth < 768) {
+        if (window.innerWidth < 768) { 
             closeSidebar();
         }
     });
@@ -102,6 +113,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
         loginScreen.style.transform = "";
         
         dashboard.classList.remove('hidden');
+        dashboard.style.display = 'flex';
         
         document.getElementById('staff-display').textContent = staffName;
         document.getElementById('avatar-initial').textContent = staffName.charAt(0).toUpperCase();
@@ -116,7 +128,6 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
             activePage.offsetHeight;
             activePage.style.animation = '';
         }
-        // Hitung statistik awal saat masuk dashboard
         updateDashboardStats();
     }, 400);
 });
@@ -128,19 +139,21 @@ document.getElementById('profile-btn').addEventListener('click', (e) => {
 
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.relative')) {
-        document.getElementById('profile-menu').classList.add('hidden');
+        const pMenu = document.getElementById('profile-menu');
+        if(pMenu) pMenu.classList.add('hidden');
     }
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
     document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('dashboard').style.display = '';
     document.getElementById('login-screen').classList.remove('hidden');
     document.getElementById('login-form').reset();
     document.getElementById('login-error').classList.add('hidden');
     document.getElementById('staff-name').focus();
     document.getElementById('profile-menu').classList.add('hidden');
     staffName = '';
-    closeSidebar(); // Sinkronisasi penutupan sidebar yang lembut saat logout
+    closeSidebar();
 });
 
 // --- 3. SIDEBAR NAVIGATION ---
@@ -181,7 +194,7 @@ document.getElementById('scan-member-btn').addEventListener('click', () => {
     modalControl(true);
 });
 
-// --- FUNGSI UNTUK MEMPERBARUI ANGKA DI DASHBOARD ---
+// --- 5. DATA RENDERING & STATS MANAGEMENT ---
 function updateDashboardStats() {
     const tbodyBooks = document.getElementById('books-tbody');
     const tbodyMembers = document.getElementById('members-tbody');
@@ -199,7 +212,6 @@ function updateDashboardStats() {
             const statusCell = rows[i].querySelector('.status-cell');
             if (statusCell) {
                 const statusText = statusCell.textContent.toLowerCase();
-                
                 if (statusText.includes('kembali')) {
                     totalReturned++;
                 } else {
@@ -220,7 +232,6 @@ function updateDashboardStats() {
     if (returnCard) returnCard.textContent = totalReturned;   
 }
 
-// Fungsi pembantu untuk memperbarui dropdown secara lokal
 function refreshDropdownsManually() {
     const memberSelect = document.getElementById('borrow-member');
     const bookSelect = document.getElementById('borrow-book');
@@ -237,7 +248,6 @@ function refreshDropdownsManually() {
     }
 }
 
-// Confirm barcode scan logic
 document.getElementById('confirm-scan-btn').addEventListener('click', async () => {
     const code = document.getElementById('scan-input').value.trim();
     if (!code) { 
@@ -260,29 +270,7 @@ document.getElementById('confirm-scan-btn').addEventListener('click', async () =
 
         if (success) {
             allData.push({ type: 'book', title, author, publisher });
-            
-            const tbody = document.getElementById('books-tbody');
-            const rowCount = tbody.children.length + 1;
-            const tr = document.createElement('tr');
-            tr.className = 'border-b dark:border-slate-700 last:border-0';
-            tr.innerHTML = `
-                <td class="px-5 py-3">${rowCount}</td>
-                <td class="px-5 py-3 font-medium">${esc(title)}</td>
-                <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(author)}</td>
-                <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(publisher)}</td>
-                <td class="px-5 py-3"><button class="text-red-500 hover:text-red-700 text-xs underline del-btn">Hapus</button></td>
-            `;
-            
-            tr.querySelector('.del-btn').addEventListener('click', () => {
-                allData = allData.filter(d => !(d.type === 'book' && d.title === title));
-                tr.remove();
-                refreshDropdownsManually();
-                updateDashboardStats(); 
-            });
-            tbody.appendChild(tr);
-
-            if(document.getElementById('books-empty')) document.getElementById('books-empty').classList.add('hidden');
-            
+            renderBooks();
             refreshDropdownsManually();
             updateDashboardStats(); 
             showScanSuccess(`Buku: ${title}`);
@@ -305,30 +293,7 @@ document.getElementById('confirm-scan-btn').addEventListener('click', async () =
 
         if (success) {
             allData.push({ type: 'member', member_name, member_class, member_nis });
-
-            const tbody = document.getElementById('members-tbody');
-            if (tbody) {
-                const rowCount = tbody.children.length + 1;
-                const tr = document.createElement('tr');
-                tr.className = 'border-b dark:border-slate-700 last:border-0';
-                tr.innerHTML = `
-                    <td class="px-5 py-3">${rowCount}</td>
-                    <td class="px-5 py-3 font-medium">${esc(member_name)}</td>
-                    <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(member_class)}</td>
-                    <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(member_nis)}</td>
-                    <td class="px-5 py-3"><button class="text-red-500 hover:text-red-700 text-xs underline del-btn">Hapus</button></td>
-                `;
-                tr.querySelector('.del-btn').addEventListener('click', () => {
-                    allData = allData.filter(d => !(d.type === 'member' && d.member_name === member_name));
-                    tr.remove();
-                    refreshDropdownsManually();
-                    updateDashboardStats(); 
-                });
-                tbody.appendChild(tr);
-            }
-
-            if(document.getElementById('members-empty')) document.getElementById('members-empty').classList.add('hidden');
-            
+            renderMembers();
             refreshDropdownsManually();
             updateDashboardStats(); 
             showScanSuccess(`Anggota: ${member_name}`);
@@ -344,7 +309,6 @@ function showScanSuccess(text) {
     document.getElementById('scan-result').textContent = text;
 }
 
-// --- 5. DATA RENDERING & STATS ---
 const handler = {
     onDataChanged(data) {
         allData = data;
@@ -358,6 +322,7 @@ const handler = {
         if (staffName && document.getElementById('dashboard').classList.contains('hidden')) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('dashboard').style.display = 'flex';
         }
     }
 };
@@ -374,16 +339,26 @@ function updateStats() {
 
     if(statBooks) statBooks.textContent = books.length;
     if(statMembers) statMembers.textContent = members.length;
-    if(statBorrowed) statBorrowed.textContent = borrows.filter(b => b.status === 'dipinjam').length;
-    if(statReturned) statReturned.textContent = borrows.filter(b => b.status === 'dikembalikan').length;
+    if(statBorrowed) statBorrowed.textContent = borrows.filter(b => (b.status || '').toLowerCase().includes('pinjam')).length;
+    if(statReturned) statReturned.textContent = borrows.filter(b => (b.status || '').toLowerCase() === 'dikembalikan').length;
 }
 
 function updateDropdowns() {
     refreshDropdownsManually();
 }
 
+// RENDER BUKU DENGAN FILTER VARIABEL SEARCH GLOBAL
 function renderBooks() {
-    const items = allData.filter(d => d.type === 'book');
+    let items = allData.filter(d => d.type === 'book');
+    
+    if (searchQuery) {
+        items = items.filter(item => 
+            (item.title || '').toLowerCase().includes(searchQuery) ||
+            (item.author || '').toLowerCase().includes(searchQuery) ||
+            (item.publisher || '').toLowerCase().includes(searchQuery)
+        );
+    }
+
     const tbody = document.getElementById('books-tbody');
     if(!tbody) return;
     document.getElementById('books-empty').classList.toggle('hidden', items.length > 0);
@@ -397,8 +372,18 @@ function renderBooks() {
     });
 }
 
+// RENDER ANGGOTA DENGAN FILTER VARIABEL SEARCH GLOBAL
 function renderMembers() {
-    const items = allData.filter(d => d.type === 'member');
+    let items = allData.filter(d => d.type === 'member');
+    
+    if (searchQuery) {
+        items = items.filter(item => 
+            (item.member_name || '').toLowerCase().includes(searchQuery) ||
+            (item.member_class || '').toLowerCase().includes(searchQuery) ||
+            (item.member_nis || '').toLowerCase().includes(searchQuery)
+        );
+    }
+
     const tbody = document.getElementById('members-tbody');
     if(!tbody) return;
     document.getElementById('members-empty').classList.toggle('hidden', items.length > 0);
@@ -412,33 +397,123 @@ function renderMembers() {
     });
 }
 
+// RENDER TRANSAKSI DENGAN FITUR PERPANJANG HARI DAN STRUK CETAK
 function renderBorrows() {
-    const items = allData.filter(d => d.type === 'borrow');
+    let items = allData.filter(d => d.type === 'borrow');
+    
+    if (searchQuery) {
+        items = items.filter(item => 
+            (item.borrower_name || '').toLowerCase().includes(searchQuery) ||
+            (item.book_title || '').toLowerCase().includes(searchQuery) ||
+            (item.borrow_date || '').toLowerCase().includes(searchQuery) ||
+            (item.status || '').toLowerCase().includes(searchQuery)
+        );
+    }
+
     const tbody = document.getElementById('borrows-tbody');
     if(!tbody) return;
     document.getElementById('borrows-empty').classList.toggle('hidden', items.length > 0);
     tbody.innerHTML = '';
+    
     items.forEach((item, i) => {
         const tr = document.createElement('tr');
         tr.className = 'border-b last:border-0';
-        const statusBadge = item.status === 'dipinjam'
-            ? '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Dipinjam</span>'
-            : '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Dikembalikan</span>';
-        tr.innerHTML = `<td class="px-5 py-3">${i+1}</td><td class="px-5 py-3">${esc(item.borrower_name)}</td><td class="px-5 py-3">${esc(item.book_title)}</td><td class="px-5 py-3">${esc(item.borrow_date)}</td><td class="px-5 py-3">${statusBadge}</td><td class="px-5 py-3 flex gap-2">${item.status === 'dipinjam' ? '<button class="text-blue-600 text-xs underline return-btn">Kembalikan</button>' : ''}<button class="text-red-500 text-xs del-btn">Hapus</button></td>`;
+        
+        const currentStatus = (item.status || 'dipinjam').toLowerCase();
+        
+        let statusBadge = '';
+        if (currentStatus === 'dikembalikan') {
+            statusBadge = '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Dikembalikan</span>';
+        } else if (currentStatus.includes('perpanjang')) {
+            statusBadge = `<span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">${item.status}</span>`;
+        } else {
+            statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Dipinjam</span>';
+        }
+
+        tr.innerHTML = `
+            <td class="px-5 py-3">${i+1}</td>
+            <td class="px-5 py-3">${esc(item.borrower_name)}</td>
+            <td class="px-5 py-3">${esc(item.book_title)}</td>
+            <td class="px-5 py-3 date-cell">${esc(item.borrow_date)}</td>
+            <td class="px-5 py-3 status-cell">${statusBadge}</td>
+            <td class="px-5 py-3">
+                <div class="flex flex-wrap items-center gap-2 action-container">
+                    ${currentStatus !== 'dikembalikan' ? `
+                        <button class="text-blue-600 text-xs underline return-btn">Kembalikan</button>
+                        
+                        <select class="renew-days border rounded px-1 py-0.5 text-xs bg-white dark:bg-slate-700 text-slate-800 dark:text-white">
+                            <option value="1">1 hari</option>
+                            <option value="2">2 hari</option>
+                            <option value="3">3 hari</option>
+                            <option value="4">4 hari</option>
+                            <option value="5">5 hari</option>
+                            <option value="6">6 hari</option>
+                            <option value="7">7 hari</option>
+                        </select>
+                        
+                        <button class="text-amber-600 dark:text-amber-400 text-xs underline renew-btn">Perpanjang</button>
+                    ` : ''}
+                    <button class="text-emerald-600 dark:text-emerald-400 text-xs underline print-btn">Cetak</button>
+                    <button class="text-red-500 text-xs del-btn">Hapus</button>
+                </div>
+            </td>
+        `;
+
         tr.querySelector('.del-btn').addEventListener('click', () => deleteRecord(item));
+        
         const retBtn = tr.querySelector('.return-btn');
-        if (retBtn) retBtn.addEventListener('click', () => returnBook(item));
+        if (retBtn) {
+            retBtn.addEventListener('click', () => returnBook(item));
+        }
+
+        const renewBtn = tr.querySelector('.renew-btn');
+        if (renewBtn) {
+            renewBtn.addEventListener('click', async () => {
+                const daysToAdd = parseInt(tr.querySelector('.renew-days').value, 10);
+                const dateCell = tr.querySelector('.date-cell');
+                const currentFormattedDate = dateCell.textContent;
+                const baseDate = new Date(currentFormattedDate);
+                
+                if (!isNaN(baseDate.getTime())) {
+                    baseDate.setDate(baseDate.getDate() + daysToAdd);
+                    const yyyy = baseDate.getFullYear();
+                    const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(baseDate.getDate()).padStart(2, '0');
+                    const newDateStr = `${yyyy}-${mm}-${dd}`;
+                    
+                    const updatedStatus = `Diperpanjang (+${daysToAdd}d)`;
+                    if (window.dataSdk && window.dataSdk.update) {
+                        await window.dataSdk.update({ ...item, borrow_date: newDateStr, status: updatedStatus });
+                    }
+                    
+                    item.borrow_date = newDateStr;
+                    item.status = updatedStatus;
+                    
+                    renderBorrows();
+                    updateDashboardStats();
+                    showToast(`Masa pinjam berhasil diperpanjang ${daysToAdd} hari!`);
+                } else {
+                    showToast('Format tanggal asal tidak valid untuk diubah.');
+                }
+            });
+        }
+
+        tr.querySelector('.print-btn').addEventListener('click', () => {
+            openReceiptModal(item);
+        });
+
         tbody.appendChild(tr);
     });
 }
-
-function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
 async function deleteRecord(item) {
     if (window.dataSdk && window.dataSdk.delete) {
         await window.dataSdk.delete(item);
     }
     allData = allData.filter(d => d !== item);
+    renderBooks();
+    renderMembers();
+    renderBorrows();
     refreshDropdownsManually();
     updateDashboardStats();
 }
@@ -454,7 +529,7 @@ async function returnBook(item) {
 
 function showToast(msg) {
     const t = document.createElement('div');
-    t.className = 'fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50';
+    t.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50';
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
@@ -477,25 +552,7 @@ document.getElementById('book-form').addEventListener('submit', async (e) => {
     
     if (success) {
         allData.push({ type: 'book', title, author, publisher });
-        const tbody = document.getElementById('books-tbody');
-        const rowCount = tbody.children.length + 1;
-        const tr = document.createElement('tr');
-        tr.className = 'border-b dark:border-slate-700 last:border-0';
-        tr.innerHTML = `
-            <td class="px-5 py-3">${rowCount}</td>
-            <td class="px-5 py-3 font-medium">${esc(title)}</td>
-            <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(author)}</td>
-            <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(publisher)}</td>
-            <td class="px-5 py-3"><button class="text-red-500 hover:text-red-700 text-xs underline del-btn">Hapus</button></td>
-        `;
-        tr.querySelector('.del-btn').addEventListener('click', () => {
-            allData = allData.filter(d => !(d.type === 'book' && d.title === title));
-            tr.remove();
-            refreshDropdownsManually();
-            updateDashboardStats(); 
-        });
-        tbody.appendChild(tr);
-        if(document.getElementById('books-empty')) document.getElementById('books-empty').classList.add('hidden');
+        renderBooks();
         e.target.reset();
         refreshDropdownsManually();
         updateDashboardStats(); 
@@ -519,25 +576,7 @@ document.getElementById('member-form').addEventListener('submit', async (e) => {
     
     if (success) {
         allData.push({ type: 'member', member_name, member_class, member_nis });
-        const tbody = document.getElementById('members-tbody');
-        const rowCount = tbody.children.length + 1;
-        const tr = document.createElement('tr');
-        tr.className = 'border-b dark:border-slate-700 last:border-0';
-        tr.innerHTML = `
-            <td class="px-5 py-3">${rowCount}</td>
-            <td class="px-5 py-3 font-medium">${esc(member_name)}</td>
-            <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(member_class)}</td>
-            <td class="px-5 py-3 text-slate-500 dark:text-gray-400">${esc(member_nis)}</td>
-            <td class="px-5 py-3"><button class="text-red-500 hover:text-red-700 text-xs underline del-btn">Hapus</button></td>
-        `;
-        tr.querySelector('.del-btn').addEventListener('click', () => {
-            allData = allData.filter(d => !(d.type === 'member' && d.member_name === member_name));
-            tr.remove();
-            refreshDropdownsManually();
-            updateDashboardStats(); 
-        });
-        tbody.appendChild(tr);
-        if(document.getElementById('members-empty')) document.getElementById('members-empty').classList.add('hidden');
+        renderMembers();
         e.target.reset();
         refreshDropdownsManually();
         updateDashboardStats(); 
@@ -560,73 +599,113 @@ document.getElementById('borrow-form').addEventListener('submit', async (e) => {
     }
     
     if (success) {
-        const tbody = document.getElementById('borrows-tbody');
-        const rowCount = tbody.children.length + 1;
-        const tr = document.createElement('tr');
-        tr.className = 'border-b dark:border-slate-700 last:border-0';
-        tr.innerHTML = `
-            <td class="px-5 py-3">${rowCount}</td>
-            <td class="px-5 py-3">${esc(borrower_name)}</td>
-            <td class="px-5 py-3">${esc(book_title)}</td>
-            <td class="px-5 py-3 date-cell">${esc(borrow_date)}</td>
-            <td class="px-5 py-3 status-cell"><span class="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs px-2 py-1 rounded">Dipinjam</span></td>
-            <td class="px-5 py-3">
-                <div class="flex flex-wrap items-center gap-2 action-container">
-                    <button class="text-blue-600 dark:text-blue-400 text-xs underline return-btn">Kembalikan</button>
-                    
-                    <select class="renew-days border rounded px-1 py-0.5 text-xs bg-white dark:bg-slate-700 text-slate-800 dark:text-white">
-                        <option value="1">1 hari</option>
-                        <option value="2">2 hari</option>
-                        <option value="3">3 hari</option>
-                        <option value="4">4 hari</option>
-                        <option value="5">5 hari</option>
-                        <option value="6">6 hari</option>
-                        <option value="7">7 hari</option>
-                    </select>
-                    
-                    <button class="text-amber-600 dark:text-amber-400 text-xs underline renew-btn">Perpanjang</button>
-                    <button class="text-red-500 text-xs underline del-btn">Hapus</button>
-                </div>
-            </td>
-        `;
-        tr.querySelector('.del-btn').addEventListener('click', () => {
-            tr.remove();
-            updateDashboardStats(); 
-        });
-        tr.querySelector('.return-btn').addEventListener('click', (btnE) => {
-            tr.querySelector('.status-cell').innerHTML = '<span class="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs px-2 py-1 rounded">Dikembalikan</span>';
-            tr.querySelector('.return-btn').remove();
-            tr.querySelector('.renew-days').remove();
-            btnE.target.remove();
-            updateDashboardStats(); 
-        });
-        
-        tr.querySelector('.renew-btn').addEventListener('click', () => {
-            const daysToAdd = parseInt(tr.querySelector('.renew-days').value, 10);
-            const dateCell = tr.querySelector('.date-cell');
-            const currentFormattedDate = dateCell.textContent;
-            const baseDate = new Date(currentFormattedDate);
-            
-            if (!isNaN(baseDate.getTime())) {
-                baseDate.setDate(baseDate.getDate() + daysToAdd);
-                const yyyy = baseDate.getFullYear();
-                const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
-                const dd = String(baseDate.getDate()).padStart(2, '0');
-                dateCell.textContent = `${yyyy}-${mm}-${dd}`;
-                tr.querySelector('.status-cell').innerHTML = `<span class="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 text-xs px-2 py-1 rounded">Diperpanjang (+${daysToAdd}d)</span>`;
-                showToast(`Masa pinjam berhasil diperpanjang ${daysToAdd} hari!`);
-            } else {
-                showToast('Format tanggal asal tidak valid untuk diubah.');
-            }
-        });
-        
-        tbody.appendChild(tr);
-        if(document.getElementById('borrows-empty')) document.getElementById('borrows-empty').classList.add('hidden');
+        allData.push({ type: 'borrow', borrower_name, book_title, borrow_date, status: 'dipinjam' });
+        renderBorrows();
         e.target.reset();
         updateDashboardStats(); 
         showToast('Transaksi berhasil disimpan!');
     }
 });
+
+// --- 6.5 LIVE AUTOSUGGESTION SYSTEM (REKOMENDASI PINTAR) ---
+const searchInputElement = document.getElementById('search-input');
+const suggestionsBox = document.getElementById('search-suggestions');
+
+if (searchInputElement && suggestionsBox) {
+    searchInputElement.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase().trim();
+        suggestionsBox.innerHTML = ''; 
+
+        if (!searchQuery) {
+            suggestionsBox.classList.add('hidden');
+            renderBooks(); renderMembers(); renderBorrows();
+            return;
+        }
+
+        let matches = [];
+        allData.forEach(item => {
+            if (item.type === 'book' && item.title) matches.push({ text: item.title, type: 'Buku', page: 'page-books' });
+            if (item.type === 'member' && item.member_name) matches.push({ text: item.member_name, type: 'Anggota', page: 'page-members' });
+            if (item.type === 'borrow' && item.borrower_name) matches.push({ text: item.borrower_name, type: 'Peminjam', page: 'page-borrows' });
+        });
+
+        let filteredMatches = matches.filter((v, index, self) =>
+            v.text.toLowerCase().includes(searchQuery) &&
+            self.findIndex(t => t.text === v.text) === index
+        ).slice(0, 6);
+
+        if (filteredMatches.length > 0) {
+            suggestionsBox.classList.remove('hidden');
+            filteredMatches.forEach(match => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex justify-between items-center px-3 py-2 border-b dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer';
+                itemDiv.innerHTML = `
+                    <span class="font-medium text-slate-700 dark:text-slate-200">${esc(match.text)}</span>
+                    <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-400">${match.type}</span>
+                `;
+
+                itemDiv.addEventListener('click', () => {
+                    searchInputElement.value = match.text;
+                    searchQuery = match.text.toLowerCase();
+                    suggestionsBox.classList.add('hidden');
+                    
+                    const targetLink = document.querySelector(`.sidebar-link[data-page="${match.page}"]`);
+                    if (targetLink) targetLink.click();
+
+                    renderBooks(); renderMembers(); renderBorrows();
+                });
+                suggestionsBox.appendChild(itemDiv);
+            });
+        } else {
+            suggestionsBox.classList.remove('hidden');
+            suggestionsBox.innerHTML = `<div class="px-3 py-3 text-center text-xs text-slate-400 dark:text-slate-500">Kata kunci tidak ditemukan di data perpustakaan</div>`;
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#search-wrapper')) {
+            suggestionsBox.classList.add('hidden');
+        }
+    });
+}
+
+// --- 6.8 RECEIPT MODAL LOGIC & CONTROLS (STRUK POP-UP) ---
+const receiptModal = document.getElementById('receipt-modal');
+const closeReceiptModalBtn = document.getElementById('close-receipt-modal');
+const printActionBtn = document.getElementById('print-action-btn');
+const closeReceiptSuccessBtn = document.getElementById('close-receipt-success-btn');
+
+function openReceiptModal(item) {
+    if (!receiptModal) return;
+    
+    document.getElementById('receipt-member').textContent = item.borrower_name;
+    document.getElementById('receipt-book').textContent = item.book_title;
+    document.getElementById('receipt-date').textContent = item.borrow_date;
+    document.getElementById('receipt-status').textContent = item.status || 'Dipinjam';
+    
+    document.getElementById('receipt-content').classList.remove('hidden');
+    document.getElementById('receipt-success').classList.add('hidden');
+    receiptModal.classList.remove('hidden');
+    
+    if (window.lucide) { lucide.createIcons(); }
+}
+
+if (closeReceiptModalBtn) {
+    closeReceiptModalBtn.addEventListener('click', () => receiptModal.classList.add('hidden'));
+}
+
+if (printActionBtn) {
+    printActionBtn.addEventListener('click', () => {
+        document.getElementById('receipt-content').classList.add('hidden');
+        document.getElementById('receipt-success').classList.remove('hidden');
+    });
+}
+
+if (closeReceiptSuccessBtn) {
+    closeReceiptSuccessBtn.addEventListener('click', () => {
+        receiptModal.classList.add('hidden');
+    });
+}
 
 // --- 7. THEME & APP INITIALIZATION ---
 document.getElementById('theme-toggle').addEventListener('click', () => {
@@ -644,7 +723,6 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
 function initTheme() {
     const saved = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
     if (saved ? saved === 'dark' : systemPrefersDark) {
         document.documentElement.classList.add('dark');
     }
@@ -653,15 +731,12 @@ function initTheme() {
 // Init
 (async () => {
     initTheme();
-
     if (window.dataSdk && window.dataSdk.init) {
         await window.dataSdk.init(handler);
     }
-
     if (window.lucide) {
         lucide.createIcons();
     }
-
     refreshDropdownsManually();
     updateDashboardStats();
 })();
