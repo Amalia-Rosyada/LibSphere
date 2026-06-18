@@ -15,11 +15,11 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css ">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body data-template-id="__page-root" class="min-h-screen w-full" id="app-root">
 
-  <div id="login-screen" class="min-h-screen flex w-full" style="min-height: 100vh;">
+  <div id="login-screen" class="w-full bg-gradient-to-b from-[#f7f4eb] via-white via-50% to-[#e0ebf6] flex" style="min-height: 100vh !important;">
     <div class="hidden md:flex md:w-1/2 relative items-center justify-center">
       <img src="loginbg.png" alt="Login Background" class="canva-image absolute inset-0 w-full h-full object-cover" loading="lazy">
       <div class="absolute inset-0 bg-slate-900/60"></div>
@@ -31,33 +31,35 @@
       </div>
     </div>
     
-    <div class="w-full md:w-1/2 flex items-center justify-center bg-white px-8">
+    <div class="w-full md:w-1/2 flex items-center justify-center bg-transparent px-8">
+      
       <div class="w-full max-w-sm">
-        <p class="text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">Selamat Datang</p>
-        <h2 class="text-3xl font-bold text-slate-800 mb-2">Masuk ke LibSphere</h2>
-        <p class="text-sm text-slate-500 mb-8">Kelola perpustakaan dengan mudah dan efisien</p>
+        <p class="text-xs font-bold text-amber-600 uppercase tracking-widest mb-2">Selamat Datang</p>
+        <h2 class="text-3xl font-bold text-Black mb-2">Masuk ke LibSphere</h2>
+        <p class="text-sm text-slate-400 mb-8">Kelola perpustakaan dengan mudah dan efisien</p>
         
         <form id="login-form" class="space-y-5">
           <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2" for="staff-name">Nama Admin</label> 
-            <input id="staff-name" type="text" placeholder="Masukkan nama admin" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800">
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wide mb-2" for="staff-name">Nama Admin</label> 
+            <input id="staff-name" type="text" placeholder="Masukkan nama admin" class="w-full border border-gray-400/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-transparent text-white placeholder-gray-400">
           </div>
           <button type="submit" class="w-full py-3 bg-[#1b365d] text-white rounded-lg font-semibold transition hover:bg-[#122542] active:scale-[0.98]">
             Masuk
           </button>
         </form>
         
-        <p id="login-error" class="text-red-500 text-sm mt-3 hidden">Silakan masukkan nama Anda.</p>
+        <p id="login-error" class="text-red-400 text-sm mt-3 hidden">Silakan masukkan nama Anda.</p>
         <p class="text-center text-xs mt-12 text-slate-400 font-medium">LibSphere v2.0</p>
       </div>
+      
     </div>
   </div>
 
-  <div id="dashboard" class="hidden dashboard-container">
+  <div id="dashboard" class="hidden dashboard-container w-full min-h-screen">
     
     <div id="sidebar-overlay" class="sidebar-overlay md:hidden fixed inset-0 bg-black/50 z-30"></div>
     
-    <aside class="w-56 flex-shrink-0 flex flex-col p-5 bg-[#5c3d31] text-white z-40">
+    <aside class="w-56 flex-shrink-0 md:flex flex-col p-5 bg-[#5c3d31] text-white z-40 hidden-mobile">
       <div class="flex items-center gap-3 mb-1">
         <img src="logo.png" alt="LibSphere Logo" class="w-7 h-7 object-contain rounded-sm"> 
         <span class="font-bold text-lg">LibSphere</span>
@@ -84,21 +86,30 @@
       </div>
     </aside>
 
-    <div class="flex-1 flex flex-col min-w-0 bg-[#eae3d2] dark:bg-slate-900">
-      <header class="bg-white dark:bg-slate-800 border-b dark:border-slate-700 px-6 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-3 flex-1">
-          <button id="sidebar-toggle-btn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition" title="Toggle sidebar"> 
+    <div class="flex-1 flex flex-col min-w-0 bg-[#eae3d2] dark:bg-slate-900 overflow-hidden">
+      
+      <header class="bg-white dark:bg-slate-800 border-b dark:border-slate-700 px-6 py-3 flex items-center justify-between gap-4 w-full">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          
+          <button id="sidebar-toggle-btn" class="hidden md:block p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition" title="Toggle sidebar"> 
             <i data-lucide="menu" class="w-5 h-5 text-gray-600 dark:text-gray-300"></i> 
           </button>
-          <button id="mobile-menu-btn" class="md:hidden text-slate-700 dark:text-white"><i data-lucide="menu" class="w-5 h-5"></i></button>
-          <div class="relative flex-1 max-w-md">
+          
+          <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition text-slate-700 dark:text-white" title="Open Menu">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          
+          <div class="relative flex-1 max-w-md min-w-0" id="search-wrapper">
             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i> 
-            <input id="search-input" type="text" placeholder="Cari buku, ISBN, atau anggota..." class="w-full pl-9 pr-4 py-2 bg-gray-100 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
+            <input id="search-input" type="text" autocomplete="off" placeholder="Cari buku, ISBN, atau anggota..." class="w-full pl-9 pr-4 py-2 bg-gray-100 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
+            
+            <div id="search-suggestions" class="hidden absolute left-0 right-0 mt-1 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto text-sm text-slate-800 dark:text-slate-200">
+            </div>
           </div>
         </div>
         
-        <div class="flex items-center gap-4">
-          <button id="theme-toggle" type="button" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition" title="Toggle dark mode" aria-label="Toggle dark mode"> 
+        <div class="flex items-center gap-4 flex-shrink-0">
+          <button id="theme-toggle" type="button" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition" title="Toggle dark mode"> 
             <i data-lucide="moon" class="w-5 h-5 text-gray-600 dark:text-gray-300"></i> 
           </button>
           <div class="relative">
@@ -109,14 +120,16 @@
                 <p class="text-xs text-gray-500 dark:text-gray-300">Pustakawan</p>
               </div>
             </button>
-            <div id="profile-menu" class="hidden absolute right-0 mt-2 w-40 bg-white dark:bg-slate-800 rounded-lg shadow-lg z-40 border dark:border-slate-700">
-              <button id="logout-btn" type="button" class="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-slate-700 flex items-center gap-2 rounded-lg"> 
-                <i data-lucide="log-out" class="w-4 h-4"></i> Keluar 
+            <div id="profile-menu" class="hidden absolute right-0 left-auto mt-2 w-40 bg-white dark:bg-slate-800 rounded-lg shadow-lg z-50 border dark:border-slate-700 p-1">
+              <button id="logout-btn" type="button" class="w-full text-left px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-slate-700 flex items-center gap-2 rounded-md transition-colors"> 
+                <i data-lucide="log-out" class="w-4 h-4 flex-shrink-0"></i> 
+                <span>Keluar</span> 
               </button>
             </div>
           </div>
         </div>
       </header>
+
 
       <main class="flex-1 overflow-y-auto p-6 bg-transparent">
         
@@ -284,13 +297,13 @@
               <div class="flex-1 min-w-[150px]">
                 <label class="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500 block mb-1">Pilih Anggota</label> 
                 <select id="borrow-member" class="w-full border-b-2 border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-white py-2 text-sm focus:outline-none focus:border-amber-500">
-                  <option value="" class="bg-white dark:bg-slate-800">-- Pilih --</option>
+                  <option value="">-- Pilih --</option>
                 </select>
               </div>
               <div class="flex-1 min-w-[150px]">
                 <label class="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500 block mb-1">Pilih Buku</label> 
                 <select id="borrow-book" class="w-full border-b-2 border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-white py-2 text-sm focus:outline-none focus:border-amber-500">
-                  <option value="" class="bg-white dark:bg-slate-800">-- Pilih --</option>
+                  <option value="">-- Pilih --</option>
                 </select>
               </div>
               <div class="flex-1 min-w-[150px]">
@@ -323,7 +336,7 @@
       </main>
 
       <div id="scan-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 dark:bg-slate-800 border border-slate-700 rounded-xl max-w-md w-full p-6 text-white shadow-2xl">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-md w-full p-6 text-white shadow-2xl">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-lg text-white">Pemindaian Barcode</h3>
             <button id="close-scan-modal" type="button" class="text-gray-400 hover:text-white">
@@ -358,6 +371,62 @@
               <button id="scan-another-btn" type="button" class="w-full bg-slate-700 text-slate-200 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-600 transition"> Scan Lagi </button> 
               <button id="close-scan-success-btn" type="button" class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-500 transition"> Selesai </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="receipt-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl max-w-md w-full p-6 shadow-2xl text-slate-800 dark:text-white">
+          <div class="flex justify-between items-center mb-4 border-b pb-2 dark:border-slate-700">
+            <h3 class="font-bold text-lg flex items-center gap-2">
+              <i data-lucide="printer" class="w-5 h-5 text-blue-600"></i> Struk Peminjaman
+            </h3>
+            <button id="close-receipt-modal" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div id="receipt-content" class="space-y-4">
+            <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 font-mono text-xs space-y-2">
+              <div class="text-center font-bold text-sm tracking-wide border-b pb-2 mb-2 border-slate-300 dark:border-slate-700">
+                LIBSPHERE LIBRARY
+              </div>
+              <div class="flex justify-between">
+                <span>Nama Anggota:</span>
+                <span id="receipt-member" class="font-semibold">-</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Judul Buku:</span>
+                <span id="receipt-book" class="font-semibold">-</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Tgl Pinjam:</span>
+                <span id="receipt-date" class="font-semibold">-</span>
+              </div>
+              <div class="flex justify-between border-t pt-2 mt-2 border-slate-300 dark:border-slate-700">
+                <span>Status:</span>
+                <span id="receipt-status" class="text-amber-600 font-semibold">-</span>
+              </div>
+            </div>
+            
+            <button id="print-action-btn" type="button" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]">
+              <i data-lucide="printer" class="w-4 h-4"></i> Cetak Sekarang
+            </button>
+          </div>
+          
+          <div id="receipt-success" class="hidden text-center space-y-4 py-4">
+            <div class="flex justify-center">
+              <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/50 border border-emerald-500/30 rounded-full flex items-center justify-center animate-bounce">
+                <i data-lucide="check" class="w-8 h-8 text-emerald-500 dark:text-emerald-400"></i>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <p class="text-base font-semibold">Cetak Berhasil!</p>
+              <p class="text-xs text-slate-400 dark:text-slate-500">Struk peminjaman telah berhasil diproses.</p>
+            </div>
+            <button id="close-receipt-success-btn" type="button" class="w-full bg-slate-700 text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-600 transition">
+              Selesai
+            </button>
           </div>
         </div>
       </div>
